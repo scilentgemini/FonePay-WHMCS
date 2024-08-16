@@ -144,16 +144,18 @@ function fonepaygeteway_link($params)
     $moduleName = $params['paymentmethod'];
     $whmcsVersion = $params['whmcsVersion'];
 
+    // Ensure the systemUrl is correctly set
+    $systemUrl = 'https://host.mauveinetech.com/'; // Update to your WHMCS base URL
     $url = 'https://clientapi.fonepay.com/api/merchantRequest';
     $PRN = uniqid();
 
-    // Construct the custom return URL
-    $customReturnURL = $systemUrl . '/modules/gateways/callback/' . $moduleName . '.php?PRN=' . $PRN . '&inv=' . $invoiceId . '&currency=' . $currencyCode;
+    // Construct the custom return URL with URL encoding
+    $customReturnURL = $systemUrl . 'modules/gateways/callback/' . $moduleName . '.php?PRN=' . urlencode($PRN) . '&inv=' . urlencode($invoiceId) . '&currency=' . urlencode($currencyCode);
 
     if ($currencyCode == 'USD') {
         $usdAmount = $amount;
         $amount = currency_converter($amount, $currencyCode, "NPR");
-        $customReturnURL .= '&usdamt=' . $usdAmount;
+        $customReturnURL .= '&usdamt=' . urlencode($usdAmount);
     }
 
     $postfields = array(
@@ -175,13 +177,15 @@ function fonepaygeteway_link($params)
 
     $htmlOutput = '<form method="post" action="' . $url . '">';
     foreach ($postfields as $k => $v) {
-        $htmlOutput .= '<input type="hidden" name="' . $k . '" value="' . ($v) . '" />';
+        $htmlOutput .= '<input type="hidden" name="' . $k . '" value="' . htmlspecialchars($v, ENT_QUOTES, 'UTF-8') . '" />';
     }
-    $htmlOutput .= '<input type="submit" value="' . $langPayNow . '" />';
+    $htmlOutput .= '<input type="submit" value="' . htmlspecialchars($langPayNow, ENT_QUOTES, 'UTF-8') . '" />';
     $htmlOutput .= '</form>';
 
     return $htmlOutput;
 }
+
+
 
 /**
  * Refund transaction.
