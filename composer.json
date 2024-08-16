@@ -1,0 +1,27 @@
+{
+  "name": "whmcs/fonepay-merchants",
+  "description": "FonePay Merchants Payment Gateway Module for the WHMCS Billing Automation Platform",
+  "keywords": [
+    "whmcs",
+    "web host automation platform",
+    "FonePay payment module",
+    "fone pay payment module",
+    "fonepay gateway module",
+    "third party gateway"
+  ],
+  "homepage": "http://www.whmcs.com/",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Mauveine Tech",
+      "email": "chitthi@mauveinetech.com",
+      "homepage": "http://mauveinetech.com",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "email": "chitthi@mauveinetech.com",
+    "forum": "http://forums.whmcs.com/",
+    "wiki": "http://docs.whmcs.com/"
+  }
+}
