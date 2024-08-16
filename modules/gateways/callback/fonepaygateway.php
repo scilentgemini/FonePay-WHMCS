@@ -3,7 +3,7 @@
  * FonePay WHMCS Payment Callback File
  */
 
-// Require libraries needed for gateway module functions.
+// Require necessary libraries for WHMCS functions.
 require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
 require_once __DIR__ . '/../../../includes/invoicefunctions.php';
@@ -19,72 +19,86 @@ if (!$gatewayParams['type']) {
     die("Module Not Activated");
 }
 
+// Extract gateway configuration parameters.
 $PID = $gatewayParams['PID'];
 $sharedSecretKey = $gatewayParams['sharedSecretKey'];
 
-// Prepare request data for verification
+// Extract parameters from callback request.
+$prn = isset($_GET['PRN']) ? $_GET['PRN'] : '';
+$bid = isset($_GET['BID']) ? $_GET['BID'] : '';
+$amt = isset($_GET['AMT']) ? $_GET['AMT'] : '';
+$uid = isset($_GET['UID']) ? $_GET['UID'] : '';
+$currencyCode = isset($_GET['currency']) ? $_GET['currency'] : '';
+$invoiceId = isset($_GET['inv']) ? $_GET['inv'] : '';
+$returnUrl = isset($_GET['vurl']) ? $_GET['vurl'] : '';
+
+// Validate the presence of required parameters.
+if (empty($prn) || empty($bid) || empty($amt) || empty($uid) || empty($invoiceId) || empty($returnUrl)) {
+    die("Invalid callback data");
+}
+
+// Prepare request data for verification.
 $requestData = [
-    'PRN' => $_GET['PRN'],
+    'PRN' => $prn,
     'PID' => $PID,
-    'BID' => $_GET['BID'],
-    'AMT' => $_GET['AMT'],
-    'UID' => $_GET['UID'],
-    'DV' => hash_hmac('sha512', $PID.','.$_GET['AMT'].','.$_GET['PRN'].','.$_GET['BID'].','.$_GET['UID'], $sharedSecretKey),
+    'BID' => $bid,
+    'AMT' => $amt,
+    'UID' => $uid,
+    'DV' => hash_hmac('sha512', $PID.','.$amt.','.$prn.','.$bid.','.$uid, $sharedSecretKey),
 ];
 
-// Verify payment by sending a GET request to the verification URL
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $_GET['RU'].'?'.http_build_query($requestData));
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$responseXML = curl_exec($ch);
-curl_close($ch);
+// Verify payment by sending a GET request to the verification URL.
+$verificationUrl = isset($_GET['RU']) ? $_GET['RU'] : '';
+if (!empty($verificationUrl)) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $verificationUrl . '?' . http_build_query($requestData));
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $responseXML = curl_exec($ch);
+    curl_close($ch);
 
-$response = simplexml_load_string($responseXML);
-$success = $response && $response->success == 'true';
-$message = $response ? $response->message : 'Unknown error';
+    // Parse the response.
+    $response = simplexml_load_string($responseXML);
+    $success = $response && $response->success == 'true';
+    $message = $response ? $response->message : 'Unknown error';
+} else {
+    $success = false;
+    $message = 'Verification URL not provided';
+}
 
-// Retrieve data returned in payment gateway callback
-$invoiceId = $_GET['inv'];
-$transactionId = $_GET['BID'];
-$paymentAmount = $_GET['AMT']; // Amount to be used for payment
-$currencyCode = $_GET['currency'];
-$paymentFee = 0;
-
-// Handle NPR currency code
+// Handle currency code mismatch if necessary.
 if ($currencyCode != 'NPR') {
-    // Handle cases where currency code is not NPR, if applicable
-    // Log an error or handle as needed
     $message = 'Currency code mismatch';
     $success = false;
 }
 
-// Validate Invoice ID
+// Validate Invoice ID.
 checkCbInvoiceID($invoiceId, $gatewayParams['name']);
 
-// Validate Transaction ID to prevent duplicate entries
-checkCbTransID($transactionId);
+// Validate Transaction ID to prevent duplicates.
+checkCbTransID($bid);
 
-// Log Transaction
+// Log the transaction result.
 logTransaction($gatewayParams['name'], $_GET, $success ? 'Success' : 'Failure');
 
+// Add invoice payment if successful.
 if ($success) {
-    // Add Invoice Payment
+    $paymentAmount = $amt; // Ensure the amount is correct for NPR.
+    $paymentFee = 0; // Set this if there are any fees involved.
     addInvoicePayment(
         $invoiceId,
-        $transactionId,
+        $bid,
         $paymentAmount,
         $paymentFee,
         $gatewayModuleName
     );
 }
 
-// Redirect back to the invoice page with a message
-$invoiceURL = $_GET['vurl'];
-if (isset($invoiceURL)) {
-    $separator = strpos($invoiceURL, '?') === false ? '?' : '&';
-    $invoiceURL .= $separator . "msg=" . urlencode($message);
-    header('Location: ' . $invoiceURL);
+// Redirect back to the invoice page with a message.
+if (isset($returnUrl)) {
+    $separator = strpos($returnUrl, '?') === false ? '?' : '&';
+    $returnUrl .= $separator . "msg=" . urlencode($message);
+    header('Location: ' . $returnUrl);
     exit;
 }
 ?>
