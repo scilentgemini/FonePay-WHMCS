@@ -14,11 +14,17 @@
  * should not define that function within your module. Only the _config
  * function is required.
  *
+ * Developer Information:
+ * - Developed by: MauveineTech
+ * - Website: https://www.mauveinetech.com
+ * - Support: support@mauveinetech.com
+ *
+ * 
  * For more information, please refer to the online documentation.
  *
  * @see https://developers.whmcs.com/payment-gateways/
  *
- * @copyright Copyright (c) WHMCS Limited 2017
+ * @copyright Copyright (c) WHMCS Limited 2024
  * @license http://www.whmcs.com/license/ WHMCS Eula
  */
 
@@ -39,11 +45,14 @@ if (!defined("WHMCS")) {
 function fonepaygeteway_MetaData()
 {
     return array(
-        'DisplayName' => 'Fonepaygeteway',
+        'DisplayName' => 'Fonepay Payment Gateway',
         'APIVersion' => '1.1',
         'DisableLocalCredtCardInput' => true,
         'TokenisedStorage' => false,
         'Description' => 'Fonepay Payment system developed by MauveineTech.',
+        'DeveloperName' => 'MauveineTech',
+        'DeveloperWebsite' => 'https://www.mauveinetech.com',
+        'DeveloperSupportEmail' => 'support@mauveinetech.com',
     );
 }
 
@@ -93,8 +102,15 @@ function fonepaygeteway_config()
             'Type' => 'yesno',
             'Description' => 'Tick to enable test mode',
         ),
+        // Developer Information
+        'developerInfo' => array(
+            'FriendlyName' => 'Developer Information',
+            'Type' => 'info',
+            'Description' => 'Module developed by MauveineTech. Visit https://www.mauveinetech.com for support.',
+        ),
     );
 }
+
 
 function currency_converter($amount, $from_code, $to_code)
 {
