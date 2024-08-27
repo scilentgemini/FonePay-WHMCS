@@ -52,7 +52,7 @@ function fonepaygeteway_MetaData()
         'Description' => 'Fonepay Payment system developed by MauveineTech.',
         'DeveloperName' => 'MauveineTech',
         'DeveloperWebsite' => 'https://www.mauveinetech.com',
-        'DeveloperSupportEmail' => 'support@mauveinetech.com',
+        'DeveloperSupportEmail' => 'chitthi@mauveinetech.com',
     );
 }
 
@@ -112,7 +112,7 @@ function fonepaygeteway_config()
 }
 
 
-function currency_converter($amount, $from_code, $to_code)
+function fonepaygeteway_currency_converter($amount, $from_code, $to_code)
 {
     if ($from_code != $to_code) {
         $from = mysql_fetch_array(select_query("tblcurrencies", "id", array("code" => $from_code)));
@@ -170,7 +170,7 @@ function fonepaygeteway_link($params)
 
     if ($currencyCode == 'USD') {
         $usdAmount = $amount;
-        $amount = currency_converter($amount, $currencyCode, "NPR");
+        $amount = fonepaygeteway_currency_converter($amount, $currencyCode, "NPR");
         $customReturnURL .= '&usdamt=' . urlencode($usdAmount);
     }
 
