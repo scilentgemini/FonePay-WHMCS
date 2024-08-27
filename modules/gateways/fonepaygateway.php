@@ -137,7 +137,7 @@ function fonepaygeteway_link($params)
 
     // System Parameters
     $companyName = $params['companyname'];
-    $systemUrl = rtrim($params['systemurl'], '/'); // Ensure no trailing slash
+    $systemUrl = rtrim($params['systemurl'], '/');
     $returnUrl = $params['returnurl'];
     $langPayNow = $params['langpaynow'];
     $moduleDisplayName = $params['name'];
